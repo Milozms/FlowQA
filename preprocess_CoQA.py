@@ -62,6 +62,7 @@ def proc_train(ith, article):
         span_answer = answers['span_text']
 
         answer, char_i, char_j = free_text_to_span(gold_answer, span_answer)
+        # answer: substring of rationale with max F1 with gold_answer
         answer_choice = 0 if answer == '__NA__' else\
                         1 if answer == '__YES__' else\
                         2 if answer == '__NO__' else\

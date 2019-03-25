@@ -21,7 +21,7 @@ from allennlp.modules.elmo import batch_to_ids
 #===========================================================================
 
 def len_preserved_normalize_answer(s):
-    """Lower text and remove punctuation, articles and extra whitespace."""
+    """Lower text and remove punctuation, articles and extra whitespace; while preserving total length."""
 
     def len_preserved_space(matchobj):
         return ' ' * len(matchobj.group(0))
@@ -39,12 +39,14 @@ def len_preserved_normalize_answer(s):
     return remove_articles(remove_punc(lower(s)))
 
 def split_with_span(s):
+    """ Return split words, and start/end character index for each word in s. """
     if s.split() == []:
         return [], []
     else:
         return zip(*[(m.group(0), (m.start(), m.end()-1)) for m in re.finditer(r'\S+', s)])
 
 def free_text_to_span(free_text, full_text):
+    """ Find best substring of full_text with max F1; return char index: [char_i, char_j) """
     if free_text == "unknown":
         return "__NA__", -1, -1
     if normalize_answer(free_text) == "yes":
@@ -54,11 +56,15 @@ def free_text_to_span(free_text, full_text):
 
     free_ls = len_preserved_normalize_answer(free_text).split()
     full_ls, full_span = split_with_span(len_preserved_normalize_answer(full_text))
+    # full_ls: split words in full_text
+    # full_span: (start, end) character index for each word in full_text
+    # Close Interval!
     if full_ls == []:
         return full_text, 0, len(full_text)
 
     max_f1, best_index = 0.0, (0, len(full_ls)-1)
     free_cnt = Counter(free_ls)
+    # iterate and find best substring of full_text [i, i+j] , maximize F1 with free_text (Close Interval)
     for i in range(len(full_ls)):
         full_cnt = Counter()
         for j in range(len(full_ls)):
