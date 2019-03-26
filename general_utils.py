@@ -122,8 +122,8 @@ def pre_proc(text):
     return text
 
 def feature_gen(C_docs, Q_CID, Q_docs, no_match):
-    C_tags = [[w.tag_ for w in doc] for doc in C_docs]
-    C_ents = [[w.ent_type_ for w in doc] for doc in C_docs]
+    C_tags = [[w.tag_ for w in doc] for doc in C_docs]        # POS
+    C_ents = [[w.ent_type_ for w in doc] for doc in C_docs]   # NER
     C_features = []
 
     for question, context_id in zip(Q_docs, Q_CID):
@@ -139,7 +139,8 @@ def feature_gen(C_docs, Q_CID, Q_docs, no_match):
             question_word = {w.text for w in question}
             question_lower = {w.text.lower() for w in question}
             question_lemma = {w.lemma_ if w.lemma_ != '-PRON-' else w.text.lower() for w in question}
-            match_origin = [w.text in question_word for w in context]
+            # Lemma: The base form of the word
+            match_origin = [w.text in question_word for w in context]  # whether each context word occurs in questions
             match_lower = [w.text.lower() in question_lower for w in context]
             match_lemma = [(w.lemma_ if w.lemma_ != '-PRON-' else w.text.lower()) in question_lemma for w in context]
             C_features.append(list(zip(match_origin, match_lower, match_lemma, term_freq)))
@@ -147,6 +148,7 @@ def feature_gen(C_docs, Q_CID, Q_docs, no_match):
     return C_tags, C_ents, C_features
 
 def get_context_span(context, context_token):
+    """ Character span for each word in context [start, end) """
     p_str = 0
     p_token = 0
     t_span = []
@@ -167,6 +169,7 @@ def get_context_span(context, context_token):
     return t_span
 
 def find_answer_span(context_span, answer_start, answer_end):
+    """ Convert char-level span id to word-level span id """
     if answer_start == -1 and answer_end == -1:
         return (-1, -1)
 

@@ -107,12 +107,14 @@ train_context_span = [get_context_span(a, b) for a, b in zip(train_context, trC_
 ans_st_token_ls, ans_end_token_ls = [], []
 for ans_st, ans_end, idx in zip(train.answer_start, train.answer_end, train.context_idx):
     ans_st_token, ans_end_token = find_answer_span(train_context_span[idx], ans_st, ans_end)
+    # convert to word-level idx
     ans_st_token_ls.append(ans_st_token)
     ans_end_token_ls.append(ans_end_token)
 
 ration_st_token_ls, ration_end_token_ls = [], []
 for ration_st, ration_end, idx in zip(train.rationale_start, train.rationale_end, train.context_idx):
     ration_st_token, ration_end_token = find_answer_span(train_context_span[idx], ration_st, ration_end)
+    # convert to word-level idx
     ration_st_token_ls.append(ration_st_token)
     ration_end_token_ls.append(ration_end_token)
 
@@ -120,7 +122,8 @@ train['answer_start_token'], train['answer_end_token'] = ans_st_token_ls, ans_en
 train['rationale_start_token'], train['rationale_end_token'] = ration_st_token_ls, ration_end_token_ls
 
 initial_len = len(train)
-train.dropna(inplace=True) # modify self DataFrame
+train.dropna(inplace=True)  # modify self DataFrame
+# delete items with N/A properties
 log.info('drop {0}/{1} inconsistent samples.'.format(initial_len - len(train), initial_len))
 log.info('answer span for training is generated.')
 
@@ -211,6 +214,7 @@ log.info('saved training to disk.')
 #==========================================================
 #=================== Work on dev data =====================
 #==========================================================
+# The two fuctions are identical!
 
 def proc_dev(ith, article):
     rows = []
