@@ -332,13 +332,13 @@ class FlowQA(nn.Module):
             question_avg_hidden = self.hier_query_rnn(question_avg_hidden.view(x1_full.size(0), x1_full.size(1), -1))
             question_avg_hidden = question_avg_hidden.contiguous().view(-1, question_avg_hidden.size(-1))
 
+        if self.opt['mark_emb']:
+            doc_hiddens = torch.cat([doc_hiddens, x1_mark_emb], dim=2)
+
         # Get Start, End span
         start_scores, end_scores = self.get_answer(doc_hiddens, question_avg_hidden, x1_mask)
         all_start_scores = start_scores.view_as(x1_full)     # batch x q_num x len_d
         all_end_scores = end_scores.view_as(x1_full)         # batch x q_num x len_d
-
-        if self.opt['mark_emb']:
-            doc_hiddens = torch.cat([doc_hiddens, x1_mark_emb], dim=2)
 
         # Get whether there is an answer
         doc_avg_hidden = torch.cat((torch.max(doc_hiddens, dim=1)[0], torch.mean(doc_hiddens, dim=1)), dim=1)
