@@ -1,7 +1,7 @@
 import re
 import json
 import spacy
-import msgpack
+import msgpack_numpy as msgpack
 import unicodedata
 import numpy as np
 import pandas as pd

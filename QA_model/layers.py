@@ -1,6 +1,6 @@
 import math
 import random
-import msgpack
+import msgpack_numpy as msgpack
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
