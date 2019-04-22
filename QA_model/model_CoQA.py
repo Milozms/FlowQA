@@ -63,24 +63,25 @@ class QAModel(object):
         torch.set_grad_enabled(True)
 
         # Transfer to GPU
+        # +1 because we add "context mark"
         if self.opt['cuda']:
-            inputs = [e.cuda(non_blocking=True) for e in batch[:9]]
-            overall_mask = batch[9].cuda(non_blocking=True)
+            inputs = [e.cuda(non_blocking=True) for e in batch[:9+1]]
+            overall_mask = batch[9+1].cuda(non_blocking=True)
 
-            answer_s = batch[10].cuda(non_blocking=True)
-            answer_e = batch[11].cuda(non_blocking=True)
-            answer_c = batch[12].cuda(non_blocking=True)
-            rationale_s = batch[13].cuda(non_blocking=True)
-            rationale_e = batch[14].cuda(non_blocking=True)
+            answer_s = batch[10+1].cuda(non_blocking=True)
+            answer_e = batch[11+1].cuda(non_blocking=True)
+            answer_c = batch[12+1].cuda(non_blocking=True)
+            rationale_s = batch[13+1].cuda(non_blocking=True)
+            rationale_e = batch[14+1].cuda(non_blocking=True)
         else:
-            inputs = [e for e in batch[:9]]
-            overall_mask = batch[9]
+            inputs = [e for e in batch[:9+1]]
+            overall_mask = batch[9+1]
 
-            answer_s = batch[10]
-            answer_e = batch[11]
-            answer_c = batch[12]
-            rationale_s = batch[13]
-            rationale_e = batch[14]
+            answer_s = batch[10+1]
+            answer_e = batch[11+1]
+            answer_c = batch[12+1]
+            rationale_s = batch[13+1]
+            rationale_e = batch[14+1]
 
         # Run forward
         # output: [batch_size, question_num, context_len], [batch_size, question_num]
