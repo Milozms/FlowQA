@@ -163,7 +163,7 @@ class QAModel(object):
         # Get argmax text spans
         text = batch[-4]
         spans = batch[-3]
-        overall_mask = batch[9]
+        overall_mask = batch[9+1]
 
         predictions = []
         max_len = self.opt['max_len'] or score_s.size(2)
