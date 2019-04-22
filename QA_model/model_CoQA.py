@@ -145,9 +145,9 @@ class QAModel(object):
 
         # Transfer to GPU
         if self.opt['cuda']:
-            inputs = [e.cuda(non_blocking=True) for e in batch[:9]]
+            inputs = [e.cuda(non_blocking=True) for e in batch[:9+1]]
         else:
-            inputs = [e for e in batch[:9]]
+            inputs = [e for e in batch[:9+1]]
 
         # Run forward
         # output: [batch_size, question_num, context_len], [batch_size, question_num]
