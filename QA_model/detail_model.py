@@ -122,6 +122,9 @@ class FlowQA(nn.Module):
             self.hier_query_rnn = layers.StackedBRNN(que_hidden_size, opt['hidden_size'], num_layers=1, rnn_type=nn.GRU, bidir=False)
             que_hidden_size = opt['hidden_size']
 
+        if opt['mark_emb_ptr']:
+            doc_hidden_size += opt['mark_size']
+
         # Attention for span start/end
         self.get_answer = layers.GetSpanStartEnd(doc_hidden_size, que_hidden_size, opt,
         opt['ptr_net_indep_attn'], opt["ptr_net_attn_type"], opt['do_ptr_update'])
@@ -333,6 +336,9 @@ class FlowQA(nn.Module):
         start_scores, end_scores = self.get_answer(doc_hiddens, question_avg_hidden, x1_mask)
         all_start_scores = start_scores.view_as(x1_full)     # batch x q_num x len_d
         all_end_scores = end_scores.view_as(x1_full)         # batch x q_num x len_d
+
+        if self.opt['mark_emb']:
+            doc_hiddens = torch.cat([doc_hiddens, x1_mark_emb], dim=2)
 
         # Get whether there is an answer
         doc_avg_hidden = torch.cat((torch.max(doc_hiddens, dim=1)[0], torch.mean(doc_hiddens, dim=1)), dim=1)

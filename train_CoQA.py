@@ -113,6 +113,7 @@ parser.add_argument('--ner_dim', type=int, default=8, help='the embedding dimens
 parser.add_argument('--mark_emb', action='store_true')
 parser.add_argument('--mark_num', type=int, default=3)
 parser.add_argument('--mark_size', type=int, default=50)
+parser.add_argument('--mark_emb_ptr', action='store_true')
 
 parser.add_argument('--prealign_hidden', type=int, default=300)
 parser.add_argument('--prealign_option', type=int, default=2, help='0: No prealign, 1, 2, ...: Different options')
