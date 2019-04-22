@@ -1,7 +1,7 @@
 import re
 import json
 import spacy
-import msgpack
+import msgpack_numpy as msgpack
 import unicodedata
 import numpy as np
 import pandas as pd
@@ -11,7 +11,7 @@ import multiprocessing
 import logging
 import random
 from allennlp.modules.elmo import batch_to_ids
-from general_utils import flatten_json, free_text_to_span, normalize_text, build_embedding, load_glove_vocab, pre_proc, get_context_span, find_answer_span, feature_gen, token2id
+from general_utils import flatten_json, free_text_to_span, normalize_text, build_embedding, load_glove_vocab, pre_proc, get_context_span, find_answer_span, feature_gen, token2id, get_marks_for_paragraph
 
 parser = argparse.ArgumentParser(
     description='Preprocessing train + dev files, about 15 minutes to run on Servers.'
@@ -118,6 +118,7 @@ for ration_st, ration_end, idx in zip(train.rationale_start, train.rationale_end
     ration_st_token_ls.append(ration_st_token)
     ration_end_token_ls.append(ration_end_token)
 
+
 train['answer_start_token'], train['answer_end_token'] = ans_st_token_ls, ans_end_token_ls
 train['rationale_start_token'], train['rationale_end_token'] = ration_st_token_ls, ration_end_token_ls
 
@@ -186,6 +187,14 @@ for i, CID in enumerate(train.context_idx):
         first_question.append(i)
     prev_CID = CID
 
+trC_marks = []
+for doc_id, first_qid in enumerate(first_question):
+    qid = first_qid
+    # iterating questions of each document
+    while qid < len(train.context_idx) and train.context_idx[qid] == doc_id:
+        trC_marks.append(get_marks_for_paragraph(train, trC_ids, doc_id, first_qid, qid))
+        qid += 1
+
 result = {
     'question_ids': trQ_ids,
     'context_ids': trC_ids,
@@ -193,6 +202,7 @@ result = {
     'context_tags': trC_tag_ids, # POS tagging
     'context_ents': trC_ent_ids, # Entity recognition
     'context': train_context,
+    'context_mark': trC_marks,
     'context_span': train_context_span,
     '1st_question': first_question,
     'question_CID': train.context_idx.tolist(),
@@ -333,6 +343,14 @@ for i, CID in enumerate(dev.context_idx):
         first_question.append(i)
     prev_CID = CID
 
+devC_marks = []
+for doc_id, first_qid in enumerate(first_question):
+    qid = first_qid
+    # iterating questions of each document
+    while qid < len(dev.context_idx) and dev.context_idx[qid] == doc_id:
+        devC_marks.append(get_marks_for_paragraph(dev, devC_ids, doc_id, first_qid, qid))
+        qid += 1
+
 result = {
     'question_ids': devQ_ids,
     'context_ids': devC_ids,
@@ -340,6 +358,7 @@ result = {
     'context_tags': devC_tag_ids, # POS tagging
     'context_ents': devC_ent_ids, # Entity recognition
     'context': dev_context,
+    'context_mark': devC_marks,
     'context_span': dev_context_span,
     '1st_question': first_question,
     'question_CID': dev.context_idx.tolist(),
