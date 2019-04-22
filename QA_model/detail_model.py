@@ -70,6 +70,10 @@ class FlowQA(nn.Module):
         else:
             doc_input_size += opt['num_features']
 
+        if opt['mark_emb']:
+            self.mark_emb = nn.Embedding(opt['mark_num'], opt['mark_size'])
+            doc_input_size += opt['mark_size']
+
         # Setup the vector size for [doc, question]
         # they will be modified in the following code
         doc_hidden_size, que_hidden_size = doc_input_size, que_input_size
@@ -127,7 +131,7 @@ class FlowQA(nn.Module):
         # Store config
         self.opt = opt
 
-    def forward(self, x1, x1_c, x1_f, x1_pos, x1_ner, x1_mask, x2_full, x2_c, x2_full_mask):
+    def forward(self, x1, x1_c, x1_f, x1_pos, x1_ner, x1_mask, x2_full, x2_c, x2_full_mask, x1_mark):
         """Inputs:
         x1 = document word indices             [batch * len_d]
         x1_c = document char indices           [batch * len_d * len_w] or [1]
@@ -138,6 +142,7 @@ class FlowQA(nn.Module):
         x2_full = question word indices        [batch * q_num * len_q]
         x2_c = question char indices           [(batch * q_num) * len_q * len_w]
         x2_full_mask = question padding mask   [batch * q_num * len_q]
+        x1_mark = document mark for each q     [batch * q_num * len_d]
         """
 
         # precomputing ELMo is only for context (to speedup computation)
@@ -233,6 +238,7 @@ class FlowQA(nn.Module):
         x2_input = torch.cat(qrnn_input_list, dim=2)
 
         def expansion_for_doc(z):
+            # [(batch * q_num) * len_d * hidden/state dim]
             return z.unsqueeze(1).expand(z.size(0), x2_full.size(1), z.size(1), z.size(2)).contiguous().view(-1, z.size(1), z.size(2))
 
         x1_emb_expand = expansion_for_doc(x1_emb)
@@ -247,6 +253,12 @@ class FlowQA(nn.Module):
         if self.opt['do_prealign']:
             x1_atten = self.pre_align(x1_emb_expand, x2_emb, x2_mask)
             x1_input = torch.cat([x1_input, x1_atten], dim=2)
+
+        if self.opt['mark_emb']:
+            x1_mark_emb = self.mark_emb(x1_mark)
+            x1_mark_emb = x1_mark_emb.view(-1, x1_mark_emb.size(-2), x1_mark_emb.size(-1))
+            # (batch*q_num) * len_d * mark_size
+            x1_input = torch.cat([x1_input, x1_mark_emb], dim=2)
 
         # === Start processing the dialog ===
         # cur_h: [batch_size * max_qa_pair, context_length, hidden_state]
