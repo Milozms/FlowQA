@@ -316,18 +316,21 @@ class BatchGen_CoQA:
                 question_num = max(question_num, i)
 
             question_id = torch.LongTensor(batch_size, question_num, question_len).fill_(0)
+            context_mark = torch.LongTensor(batch_size, question_num, context_len).fill_(0)  # for each question!!!
             question_tokens = []
             for i, q_seq in enumerate(question_batch):
                 for j, id in enumerate(q_seq):
-                    doc = qa_data[id][1]
+                    doc = qa_data[id][1]   # question_ids
                     question_id[i, j, :len(doc)] = torch.LongTensor(doc)
                     question_tokens.append(qa_data[id][10])
+                    context_mark[i, j, :] = torch.LongTensor(qa_data[id][11])  # 'context_mark'
 
-                for j in range(len(q_seq), question_num):
+                for j in range(len(q_seq), question_num):  # padding for nq < question_num
                     question_id[i, j, :2] = torch.LongTensor([2, 3])
                     question_tokens.append(["<S>", "</S>"])
 
             question_cid = batch_to_ids(question_tokens)
+
 
             # Process Context-Question Features
             feature_len = len(qa_data[0][2][0])
@@ -393,9 +396,11 @@ class BatchGen_CoQA:
                 overall_mask = overall_mask.pin_memory()
                 context_cid = context_cid.pin_memory()
                 question_cid = question_cid.pin_memory()
+                context_mark = context_mark.pin_memory()
 
             yield (context_id, context_cid, context_feature, context_tag, context_ent, context_mask,
-                   question_id, question_cid, question_mask, overall_mask,
+                   question_id, question_cid, question_mask, context_mark,  # add context_mark here (idx 9)
+                   overall_mask,
                    answer_s, answer_e, answer_c, rationale_s, rationale_e,
                    text, span, question, answer)
 
