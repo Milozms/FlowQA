@@ -332,7 +332,7 @@ class FlowQA(nn.Module):
             question_avg_hidden = self.hier_query_rnn(question_avg_hidden.view(x1_full.size(0), x1_full.size(1), -1))
             question_avg_hidden = question_avg_hidden.contiguous().view(-1, question_avg_hidden.size(-1))
 
-        if self.opt['mark_emb']:
+        if self.opt['mark_emb_ptr']:
             doc_hiddens = torch.cat([doc_hiddens, x1_mark_emb], dim=2)
 
         # Get Start, End span
