@@ -104,12 +104,13 @@ log.info('All tokens for training are obtained.')
 
 train_context_span = [get_context_span(a, b) for a, b in zip(train_context, trC_unnorm_tokens)]
 
-ans_st_token_ls, ans_end_token_ls = [], []
-for ans_st, ans_end, idx in zip(train.answer_start, train.answer_end, train.context_idx):
-    ans_st_token, ans_end_token = find_answer_span(train_context_span[idx], ans_st, ans_end)
-    # convert to word-level idx
-    ans_st_token_ls.append(ans_st_token)
-    ans_end_token_ls.append(ans_end_token)
+# ans_st_token_ls, ans_end_token_ls = [], []
+# for ans_st, ans_end, idx in zip(train.answer_start, train.answer_end, train.context_idx):
+#     ans_st_token, ans_end_token = find_answer_span(train_context_span[idx], ans_st, ans_end)
+#     # convert to word-level idx
+#     ans_st_token_ls.append(ans_st_token)
+#     ans_end_token_ls.append(ans_end_token)
+
 
 ration_st_token_ls, ration_end_token_ls = [], []
 for ration_st, ration_end, idx in zip(train.rationale_start, train.rationale_end, train.context_idx):
@@ -117,6 +118,18 @@ for ration_st, ration_end, idx in zip(train.rationale_start, train.rationale_end
     # convert to word-level idx
     ration_st_token_ls.append(ration_st_token)
     ration_end_token_ls.append(ration_end_token)
+
+
+ans_st_token_ls, ans_end_token_ls = [], []
+for qid, cid in enumerate(train.context_idx):
+    if cid != train.context_idx[qid+1]:
+        # last question of a document
+        ans_st_token_ls.append(ration_st_token_ls[qid])
+        ans_end_token_ls.append(ration_end_token_ls[qid])
+    else:
+        ans_st_token_ls.append(ration_st_token_ls[qid + 1])
+        ans_end_token_ls.append(ration_end_token_ls[qid + 1])
+
 
 train['answer_start_token'], train['answer_end_token'] = ans_st_token_ls, ans_end_token_ls
 train['rationale_start_token'], train['rationale_end_token'] = ration_st_token_ls, ration_end_token_ls
@@ -177,7 +190,7 @@ meta = {
     'vocab': tr_vocab,
     'embedding': tr_embedding.tolist()
 }
-with open('CoQA/train_meta.msgpack', 'wb') as f:
+with open('CoQA/nextspan/train_meta.msgpack', 'wb') as f:
     msgpack.dump(meta, f)
 
 prev_CID, first_question = -1, []
@@ -206,7 +219,7 @@ result = {
     'context_tokenized': trC_tokens,
     'question_tokenized': trQ_tokens
 }
-with open('CoQA/train_data.msgpack', 'wb') as f:
+with open('CoQA/nextspan/train_data.msgpack', 'wb') as f:
     msgpack.dump(result, f)
 
 log.info('saved training to disk.')
@@ -269,17 +282,27 @@ log.info('All tokens for dev are obtained.')
 dev_context_span = [get_context_span(a, b) for a, b in zip(dev_context, devC_unnorm_tokens)]
 log.info('context span for dev is generated.')
 
-ans_st_token_ls, ans_end_token_ls = [], []
-for ans_st, ans_end, idx in zip(dev.answer_start, dev.answer_end, dev.context_idx):
-    ans_st_token, ans_end_token = find_answer_span(dev_context_span[idx], ans_st, ans_end)
-    ans_st_token_ls.append(ans_st_token)
-    ans_end_token_ls.append(ans_end_token)
+# ans_st_token_ls, ans_end_token_ls = [], []
+# for ans_st, ans_end, idx in zip(dev.answer_start, dev.answer_end, dev.context_idx):
+#     ans_st_token, ans_end_token = find_answer_span(dev_context_span[idx], ans_st, ans_end)
+#     ans_st_token_ls.append(ans_st_token)
+#     ans_end_token_ls.append(ans_end_token)
 
 ration_st_token_ls, ration_end_token_ls = [], []
 for ration_st, ration_end, idx in zip(dev.rationale_start, dev.rationale_end, dev.context_idx):
     ration_st_token, ration_end_token = find_answer_span(dev_context_span[idx], ration_st, ration_end)
     ration_st_token_ls.append(ration_st_token)
     ration_end_token_ls.append(ration_end_token)
+
+ans_st_token_ls, ans_end_token_ls = [], []
+for qid, cid in enumerate(dev.context_idx):
+    if cid != dev.context_idx[qid+1]:
+        # last question of a document
+        ans_st_token_ls.append(ration_st_token_ls[qid])
+        ans_end_token_ls.append(ration_end_token_ls[qid])
+    else:
+        ans_st_token_ls.append(ration_st_token_ls[qid + 1])
+        ans_end_token_ls.append(ration_end_token_ls[qid + 1])
 
 dev['answer_start_token'], dev['answer_end_token'] = ans_st_token_ls, ans_end_token_ls
 dev['rationale_start_token'], dev['rationale_end_token'] = ration_st_token_ls, ration_end_token_ls
@@ -324,7 +347,7 @@ meta = {
     'vocab': dev_vocab,
     'embedding': dev_embedding.tolist()
 }
-with open('CoQA/dev_meta.msgpack', 'wb') as f:
+with open('CoQA/nextspan/dev_meta.msgpack', 'wb') as f:
     msgpack.dump(meta, f)
 
 prev_CID, first_question = -1, []
@@ -353,7 +376,7 @@ result = {
     'context_tokenized': devC_tokens,
     'question_tokenized': devQ_tokens
 }
-with open('CoQA/dev_data.msgpack', 'wb') as f:
+with open('CoQA/nextspan/dev_data.msgpack', 'wb') as f:
     msgpack.dump(result, f)
 
 log.info('saved dev to disk.')
