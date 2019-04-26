@@ -94,7 +94,7 @@ class QAModel(object):
         else:
             loss = 0.0
         # all_no_span = (answer_c != 3)
-        all_no_span = torch.ones(answer_s.size(), dtype=torch.uint8)
+        all_no_span = torch.zeros(answer_s.size(), dtype=torch.uint8)
         if self.opt['cuda']:
             all_no_span = all_no_span.cuda(non_blocking=True)
         answer_s.masked_fill_(all_no_span, -100) # ignore_index is -100 in F.cross_entropy
