@@ -87,9 +87,12 @@ class QAModel(object):
         score_s, score_e, score_c = self.network(*inputs)
 
         # Compute loss and accuracies
-        loss = self.opt['elmo_lambda'] * (self.network.elmo.scalar_mix_0.scalar_parameters[0] ** 2
-                                        + self.network.elmo.scalar_mix_0.scalar_parameters[1] ** 2
-                                        + self.network.elmo.scalar_mix_0.scalar_parameters[2] ** 2) # ELMo L2 regularization
+        if self.opt['use_elmo']:
+            loss = self.opt['elmo_lambda'] * (self.network.elmo.scalar_mix_0.scalar_parameters[0] ** 2
+                                            + self.network.elmo.scalar_mix_0.scalar_parameters[1] ** 2
+                                            + self.network.elmo.scalar_mix_0.scalar_parameters[2] ** 2) # ELMo L2 regularization
+        else:
+            loss = 0.0
         all_no_span = (answer_c != 3)
         answer_s.masked_fill_(all_no_span, -100) # ignore_index is -100 in F.cross_entropy
         answer_e.masked_fill_(all_no_span, -100)
