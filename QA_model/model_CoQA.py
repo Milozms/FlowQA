@@ -169,18 +169,18 @@ class QAModel(object):
 
         for i in range(overall_mask.size(0)):
             for j in range(overall_mask.size(1)):
-                if overall_mask[i, j] == 0: # this dialog has ended
-                    break
+                    if overall_mask[i, j] == 0: # this dialog has ended
+                        break
 
-                ans_type = np.argmax(score_c[i, j])
+                # ans_type = np.argmax(score_c[i, j])
 
-                if ans_type == 0:
-                    predictions.append("unknown")
-                elif ans_type == 1:
-                    predictions.append("Yes")
-                elif ans_type == 2:
-                    predictions.append("No")
-                else:
+                # if ans_type == 0:
+                #     predictions.append("unknown")
+                # elif ans_type == 1:
+                #     predictions.append("Yes")
+                # elif ans_type == 2:
+                #     predictions.append("No")
+                # else:
                     scores = torch.ger(score_s[i, j], score_e[i, j])
                     scores.triu_().tril_(max_len - 1)
                     scores = scores.numpy()
