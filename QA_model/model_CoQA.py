@@ -69,7 +69,7 @@ class QAModel(object):
 
             answer_s = batch[10].cuda(non_blocking=True)
             answer_e = batch[11].cuda(non_blocking=True)
-            answer_c = batch[12].cuda(non_blocking=True)
+            # answer_c = batch[12].cuda(non_blocking=True)
             rationale_s = batch[13].cuda(non_blocking=True)
             rationale_e = batch[14].cuda(non_blocking=True)
         else:
@@ -78,7 +78,7 @@ class QAModel(object):
 
             answer_s = batch[10]
             answer_e = batch[11]
-            answer_c = batch[12]
+            # answer_c = batch[12]
             rationale_s = batch[13]
             rationale_e = batch[14]
 
@@ -93,7 +93,8 @@ class QAModel(object):
                                             + self.network.elmo.scalar_mix_0.scalar_parameters[2] ** 2) # ELMo L2 regularization
         else:
             loss = 0.0
-        all_no_span = (answer_c != 3)
+        # all_no_span = (answer_c != 3)
+        all_no_span = torch.ones_like(answer_s)
         answer_s.masked_fill_(all_no_span, -100) # ignore_index is -100 in F.cross_entropy
         answer_e.masked_fill_(all_no_span, -100)
         rationale_s.masked_fill_(all_no_span, -100) # ignore_index is -100 in F.cross_entropy
@@ -104,14 +105,16 @@ class QAModel(object):
 
             target_s = answer_s[i, :q_num] # Size: q_num
             target_e = answer_e[i, :q_num]
-            target_c = answer_c[i, :q_num]
+            # target_c = answer_c[i, :q_num]
             target_s_r = rationale_s[i, :q_num]
             target_e_r = rationale_e[i, :q_num]
             target_no_span = all_no_span[i, :q_num]
 
             # single_loss is averaged across q_num
-            single_loss = (F.cross_entropy(score_c[i, :q_num], target_c) * q_num.item() / 15.0
-                         + F.cross_entropy(score_s[i, :q_num], target_s) * (q_num - sum(target_no_span)).item() / 12.0
+            single_loss = (
+                # F.cross_entropy(score_c[i, :q_num], target_c) * q_num.item() / 15.0
+                #          +
+                F.cross_entropy(score_s[i, :q_num], target_s) * (q_num - sum(target_no_span)).item() / 12.0
                          + F.cross_entropy(score_e[i, :q_num], target_e) * (q_num - sum(target_no_span)).item() / 12.0)
                          #+ self.opt['rationale_lambda'] * F.cross_entropy(score_s_r[i, :q_num], target_s_r) * (q_num - sum(target_no_span)).item() / 12.0
                          #+ self.opt['rationale_lambda'] * F.cross_entropy(score_e_r[i, :q_num], target_e_r) * (q_num - sum(target_no_span)).item() / 12.0)
