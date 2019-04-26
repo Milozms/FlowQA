@@ -122,7 +122,7 @@ for ration_st, ration_end, idx in zip(train.rationale_start, train.rationale_end
 
 ans_st_token_ls, ans_end_token_ls = [], []
 for qid, cid in enumerate(list(train.context_idx)):
-    if qid >= len(train.context_idx) or cid != train.context_idx[qid+1]:
+    if qid >= len(list(train.context_idx)) or cid != train.context_idx[qid+1]:
         # last question of a document
         ans_st_token_ls.append(ration_st_token_ls[qid])
         ans_end_token_ls.append(ration_end_token_ls[qid])
@@ -296,7 +296,7 @@ for ration_st, ration_end, idx in zip(dev.rationale_start, dev.rationale_end, de
 
 ans_st_token_ls, ans_end_token_ls = [], []
 for qid, cid in enumerate(list(dev.context_idx)):
-    if qid >= len(dev.context_idx) or cid != dev.context_idx[qid+1]:
+    if qid >= len(list(dev.context_idx)) or cid != dev.context_idx[qid+1]:
         # last question of a document
         ans_st_token_ls.append(ration_st_token_ls[qid])
         ans_end_token_ls.append(ration_end_token_ls[qid])
