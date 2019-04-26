@@ -78,6 +78,9 @@ def proc_train(ith, article):
         rationale_start = answers['span_start']
         rationale_end = answers['span_end']
 
+        if rationale_start == -1 or ration_end == -1:
+            continue
+
         q_text = question['input_text']
         if j > 0:
             q_text = article['answers'][j-1]['input_text'] + " // " + q_text
