@@ -94,7 +94,9 @@ class QAModel(object):
         else:
             loss = 0.0
         # all_no_span = (answer_c != 3)
-        all_no_span = torch.ones_like(answer_s)
+        all_no_span = torch.ones(answer_s.size(), dtype=torch.uint8)
+        if self.opt['cuda']:
+            all_no_span = all_no_span.cuda(non_blocking=True)
         answer_s.masked_fill_(all_no_span, -100) # ignore_index is -100 in F.cross_entropy
         answer_e.masked_fill_(all_no_span, -100)
         rationale_s.masked_fill_(all_no_span, -100) # ignore_index is -100 in F.cross_entropy
@@ -112,12 +114,12 @@ class QAModel(object):
 
             # single_loss is averaged across q_num
             single_loss = (
-                # F.cross_entropy(score_c[i, :q_num], target_c) * q_num.item() / 15.0
-                #          +
-                F.cross_entropy(score_s[i, :q_num], target_s) * (q_num - sum(target_no_span)).item() / 12.0
-                         + F.cross_entropy(score_e[i, :q_num], target_e) * (q_num - sum(target_no_span)).item() / 12.0)
-                         #+ self.opt['rationale_lambda'] * F.cross_entropy(score_s_r[i, :q_num], target_s_r) * (q_num - sum(target_no_span)).item() / 12.0
-                         #+ self.opt['rationale_lambda'] * F.cross_entropy(score_e_r[i, :q_num], target_e_r) * (q_num - sum(target_no_span)).item() / 12.0)
+                    # F.cross_entropy(score_c[i, :q_num], target_c) * q_num.item() / 15.0
+                    #          +
+                    F.cross_entropy(score_s[i, :q_num], target_s) * (q_num - sum(target_no_span)).item() / 12.0
+                             + F.cross_entropy(score_e[i, :q_num], target_e) * (q_num - sum(target_no_span)).item() / 12.0)
+                             #+ self.opt['rationale_lambda'] * F.cross_entropy(score_s_r[i, :q_num], target_s_r) * (q_num - sum(target_no_span)).item() / 12.0
+                             #+ self.opt['rationale_lambda'] * F.cross_entropy(score_e_r[i, :q_num], target_e_r) * (q_num - sum(target_no_span)).item() / 12.0)
 
             loss = loss + (single_loss / overall_mask.size(0))
         self.train_loss.update(loss.item(), overall_mask.size(0))
