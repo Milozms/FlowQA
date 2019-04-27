@@ -255,6 +255,9 @@ def proc_dev(ith, article):
         rationale = answers['span_text']
         rationale_start = answers['span_start']
         rationale_end = answers['span_end']
+        
+        if rationale_start == -1 or rationale_end == -1:
+            continue
 
         q_text = question['input_text']
         if j > 0:
