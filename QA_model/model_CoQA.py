@@ -4,6 +4,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import numpy as np
 import logging
+import IPython
 
 from torch.nn import Parameter
 from torch.autograd import Variable
@@ -69,7 +70,7 @@ class QAModel(object):
 
             answer_s = batch[10].cuda(non_blocking=True)
             answer_e = batch[11].cuda(non_blocking=True)
-            # answer_c = batch[12].cuda(non_blocking=True)
+            answer_c = batch[12].cuda(non_blocking=True)
             rationale_s = batch[13].cuda(non_blocking=True)
             rationale_e = batch[14].cuda(non_blocking=True)
         else:
@@ -78,7 +79,7 @@ class QAModel(object):
 
             answer_s = batch[10]
             answer_e = batch[11]
-            # answer_c = batch[12]
+            answer_c = batch[12]
             rationale_s = batch[13]
             rationale_e = batch[14]
 
@@ -94,7 +95,8 @@ class QAModel(object):
         else:
             loss = 0.0
         # all_no_span = (answer_c != 3)
-        all_no_span = torch.zeros(answer_s.size(), dtype=torch.uint8)
+        all_no_span = (answer_c == 0)
+        # all_no_span = torch.zeros(answer_s.size(), dtype=torch.uint8)
         if self.opt['cuda']:
             all_no_span = all_no_span.cuda(non_blocking=True)
         answer_s.masked_fill_(all_no_span, -100) # ignore_index is -100 in F.cross_entropy
