@@ -80,6 +80,7 @@ def proc_train(ith, article):
         rationale_end = answers['span_end']
 
         if answer_choice == 0 and rationale_start > 0:
+            answer_choice = 3
             print('Warning: Article %d Question %d' % (ith, j))
 
         if rationale_start == -1 or rationale_end == -1 or j + 1 >= qnum:
@@ -263,6 +264,7 @@ def proc_dev(ith, article):
         rationale_end = answers['span_end']
 
         if answer_choice == 0 and rationale_start > 0:
+            answer_choice = 3
             print('Warning: Article %d Question %d' % (ith, j))
 
         if rationale_start == -1 or rationale_end == -1 or j + 1 >= qnum:
