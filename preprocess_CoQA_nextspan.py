@@ -56,6 +56,7 @@ log.info('glove loaded.')
 def proc_train(ith, article):
     rows = []
     context = article['story']
+    qnum = len(article['questions'])
 
     for j, (question, answers) in enumerate(zip(article['questions'], article['answers'])):
         gold_answer = answers['input_text']
@@ -78,7 +79,10 @@ def proc_train(ith, article):
         rationale_start = answers['span_start']
         rationale_end = answers['span_end']
 
-        if rationale_start == -1 or rationale_end == -1 or j == 0:
+        if answer_choice == 0 and rationale_start > 0:
+            print('Warning: Article %d Question %d' % (ith, j))
+
+        if rationale_start == -1 or rationale_end == -1 or j + 1 >= qnum:
             answer_choice = 0
 
         q_text = question['input_text']
@@ -236,6 +240,7 @@ log.info('saved training to disk.')
 def proc_dev(ith, article):
     rows = []
     context = article['story']
+    qnum = len(article['questions'])
 
     for j, (question, answers) in enumerate(zip(article['questions'], article['answers'])):
         gold_answer = answers['input_text']
@@ -257,7 +262,10 @@ def proc_dev(ith, article):
         rationale_start = answers['span_start']
         rationale_end = answers['span_end']
 
-        if rationale_start == -1 or rationale_end == -1 or j == 0:
+        if answer_choice == 0 and rationale_start > 0:
+            print('Warning: Article %d Question %d' % (ith, j))
+
+        if rationale_start == -1 or rationale_end == -1 or j + 1 >= qnum:
             answer_choice = 0
 
         q_text = question['input_text']
