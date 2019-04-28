@@ -78,8 +78,8 @@ def proc_train(ith, article):
         rationale_start = answers['span_start']
         rationale_end = answers['span_end']
 
-        if rationale_start == -1 or rationale_end == -1:
-            continue
+        if rationale_start == -1 or rationale_end == -1 or j == 0:
+            answer_choice = 0
 
         q_text = question['input_text']
         if j > 0:
@@ -220,7 +220,8 @@ result = {
     'rationale_end': train.rationale_end_token.tolist(),
     'answer_choice': train.answer_choice.tolist(),
     'context_tokenized': trC_tokens,
-    'question_tokenized': trQ_tokens
+    'question_tokenized': trQ_tokens,
+    'context_idx': train.context_idx.tolist()
 }
 with open('CoQA/nextspan/train_data.msgpack', 'wb') as f:
     msgpack.dump(result, f)
@@ -255,9 +256,9 @@ def proc_dev(ith, article):
         rationale = answers['span_text']
         rationale_start = answers['span_start']
         rationale_end = answers['span_end']
-        
-        if rationale_start == -1 or rationale_end == -1:
-            continue
+
+        if rationale_start == -1 or rationale_end == -1 or j == 0:
+            answer_choice = 0
 
         q_text = question['input_text']
         if j > 0:
@@ -380,7 +381,8 @@ result = {
     'rationale_end': dev.rationale_end_token.tolist(),
     'answer_choice': dev.answer_choice.tolist(),
     'context_tokenized': devC_tokens,
-    'question_tokenized': devQ_tokens
+    'question_tokenized': devQ_tokens,
+    'context_idx': dev.context_idx.tolist()
 }
 with open('CoQA/nextspan/dev_data.msgpack', 'wb') as f:
     msgpack.dump(result, f)
