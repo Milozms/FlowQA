@@ -13,6 +13,8 @@ import random
 from allennlp.modules.elmo import batch_to_ids
 from general_utils import flatten_json, free_text_to_span, normalize_text, build_embedding, load_glove_vocab, pre_proc, get_context_span, find_answer_span, feature_gen, token2id
 
+IGNORE_IDX = -100
+
 parser = argparse.ArgumentParser(
     description='Preprocessing train + dev files, about 15 minutes to run on Servers.'
 )
@@ -64,10 +66,7 @@ def proc_train(ith, article):
 
         answer, char_i, char_j = free_text_to_span(gold_answer, span_answer)
         # answer: substring of rationale with max F1 with gold_answer
-        answer_choice = 0 if answer == '__NA__' else\
-                        1 if answer == '__YES__' else\
-                        2 if answer == '__NO__' else\
-                        3 # Not a yes/no question
+        answer_choice = 3
 
         if answer_choice == 3:
             answer_start = answers['span_start'] + char_i
@@ -79,11 +78,7 @@ def proc_train(ith, article):
         rationale_start = answers['span_start']
         rationale_end = answers['span_end']
 
-        if answer_choice == 0 and rationale_start > 0:
-            answer_choice = 3
-            print('Warning: Article %d Question %d' % (ith, j))
-
-        if rationale_start == -1 or rationale_end == -1 or j + 1 >= qnum:
+        if j + 1 >= qnum or article['answers'][j+1]['span_start'] < 0 or article['answers'][j+1]['span_end'] < 0:
             answer_choice = 0
 
         q_text = question['input_text']
@@ -132,8 +127,8 @@ ans_st_token_ls, ans_end_token_ls = [], []
 for qid, cid in enumerate(list(train.context_idx)):
     if qid + 1 >= len(list(train.context_idx)) or cid != train.context_idx[qid+1]:
         # last question of a document
-        ans_st_token_ls.append(ration_st_token_ls[qid])
-        ans_end_token_ls.append(ration_end_token_ls[qid])
+        ans_st_token_ls.append(-1)
+        ans_end_token_ls.append(-1)
     else:
         ans_st_token_ls.append(ration_st_token_ls[qid + 1])
         ans_end_token_ls.append(ration_end_token_ls[qid + 1])
@@ -248,10 +243,7 @@ def proc_dev(ith, article):
         span_answer = answers['span_text']
 
         answer, char_i, char_j = free_text_to_span(gold_answer, span_answer)
-        answer_choice = 0 if answer == '__NA__' else\
-                        1 if answer == '__YES__' else\
-                        2 if answer == '__NO__' else\
-                        3 # Not a yes/no question
+        answer_choice = 3
 
         if answer_choice == 3:
             answer_start = answers['span_start'] + char_i
@@ -263,11 +255,7 @@ def proc_dev(ith, article):
         rationale_start = answers['span_start']
         rationale_end = answers['span_end']
 
-        if answer_choice == 0 and rationale_start > 0:
-            answer_choice = 3
-            print('Warning: Article %d Question %d' % (ith, j))
-
-        if rationale_start == -1 or rationale_end == -1 or j + 1 >= qnum:
+        if j + 1 >= qnum or article['answers'][j+1]['span_start'] < 0 or article['answers'][j+1]['span_end'] < 0:
             answer_choice = 0
 
         q_text = question['input_text']
@@ -315,8 +303,8 @@ ans_st_token_ls, ans_end_token_ls = [], []
 for qid, cid in enumerate(list(dev.context_idx)):
     if qid + 1 >= len(list(dev.context_idx)) or cid != dev.context_idx[qid+1]:
         # last question of a document
-        ans_st_token_ls.append(ration_st_token_ls[qid])
-        ans_end_token_ls.append(ration_end_token_ls[qid])
+        ans_st_token_ls.append(-1)
+        ans_end_token_ls.append(-1)
     else:
         ans_st_token_ls.append(ration_st_token_ls[qid + 1])
         ans_end_token_ls.append(ration_end_token_ls[qid + 1])
