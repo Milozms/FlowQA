@@ -10,7 +10,7 @@ from shutil import copyfile
 from datetime import datetime
 from collections import Counter
 import torch
-import msgpack
+import msgpack_numpy as msgpack
 import json
 import numpy as np
 import pandas as pd
@@ -185,6 +185,27 @@ def find_answer_span(context_span, answer_start, answer_end):
         return (None, None)
     else:
         return (t_start, t_end)
+
+def get_marks_for_paragraph(dset, doc_tokens, doc_id, first_qid, cur_qid):
+    '''
+    0: not asked
+    1: being asked by current question
+    2: asked by any question in history (if not 1)
+    '''
+    n_current = 1
+    result = np.zeros(len(doc_tokens[doc_id]), dtype=np.uint8)
+    prev_qid = cur_qid     # history ends at previous question
+    first_1_qid = prev_qid - n_current + 1
+    if first_1_qid >= first_qid:
+        # history questions
+        for history_qid in range(first_qid, first_1_qid):
+            s, e = dset.rationale_start_token[history_qid], dset.rationale_end_token[history_qid]
+            result[s:e] = 2
+        # current questions
+        for history_qid in range(first_1_qid, prev_qid+1):  # the last is "qid", not using current qid
+            s, e = dset.rationale_start_token[history_qid], dset.rationale_end_token[history_qid]
+            result[s:e] = 1
+    return result
 
 def build_embedding(embed_file, targ_vocab, wv_dim):
     vocab_size = len(targ_vocab)

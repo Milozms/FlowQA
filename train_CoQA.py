@@ -9,7 +9,7 @@ from shutil import copyfile
 from datetime import datetime
 from collections import Counter
 import torch
-import msgpack
+import msgpack_numpy as msgpack
 import pandas as pd
 import numpy as np
 from QA_model.model_CoQA import QAModel
@@ -109,6 +109,11 @@ parser.add_argument('--pos_dim', type=int, default=12, help='the embedding dimen
 parser.add_argument('--no_ner', dest='use_ner', action='store_false') # named entity
 parser.add_argument('--ner_size', type=int, default=19, help='how many kinds of named entity tags.')
 parser.add_argument('--ner_dim', type=int, default=8, help='the embedding dimension for named entity tags.')
+
+parser.add_argument('--mark_emb', action='store_true')
+parser.add_argument('--mark_num', type=int, default=3)
+parser.add_argument('--mark_size', type=int, default=50)
+parser.add_argument('--mark_emb_ptr', action='store_true')
 
 parser.add_argument('--prealign_hidden', type=int, default=300)
 parser.add_argument('--prealign_option', type=int, default=2, help='0: No prealign, 1, 2, ...: Different options')
@@ -279,7 +284,8 @@ def load_train_data(opt):
                         data['answer_choice'],
                         data['question'],
                         data['answer'],
-                        data['question_tokenized']))
+                        data['question_tokenized'],
+                        data['context_mark']))
             }
     return train, embedding, opt
 
@@ -314,7 +320,8 @@ def load_dev_data(opt): # can be extended to true test set
                         data['answer_choice'],
                         data['question'],
                         data['answer'],
-                        data['question_tokenized']))
+                        data['question_tokenized'],
+                        data['context_mark']))
           }
 
     return dev, embedding

@@ -10,7 +10,7 @@ from shutil import copyfile
 from datetime import datetime
 from collections import Counter
 import torch
-import msgpack
+import msgpack_numpy as msgpack
 import pickle
 import pandas as pd
 import numpy as np
