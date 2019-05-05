@@ -389,13 +389,36 @@ class BilinearSeqAttn(nn.Module):
         xWy.data.masked_fill_(x_mask.data, -float('inf'))
         return xWy
 
+class LinearSeqScores(nn.Module):
+    """A bilinear attention layer over a sequence X w.r.t y:
+    * o_i = x_i'Wy for x_i in X.
+    """
+    def __init__(self, x_size, y_size, opt, identity=False):
+        super(LinearSeqScores, self).__init__()
+        self.linear = nn.Linear(x_size, 1)
+
+    def forward(self, x, y, x_mask):
+        """
+        x = batch * len * h1
+        y = batch * h2
+        x_mask = batch * len
+        """
+        x = dropout(x, p=my_dropout_p, training=self.training)
+        xWy = self.linear(x).squeeze(2)
+        xWy.data.masked_fill_(x_mask.data, -float('inf'))
+        return xWy
+
 class GetSpanStartEnd(nn.Module):
     # supports MLP attention and GRU for pointer network updating
     def __init__(self, x_size, h_size, opt, do_indep_attn=True, attn_type="Bilinear", do_ptr_update=True):
         super(GetSpanStartEnd, self).__init__()
 
-        self.attn  = BilinearSeqAttn(x_size, h_size, opt)
-        self.attn2 = BilinearSeqAttn(x_size, h_size, opt) if do_indep_attn else None
+        if attn_type =='Bilinear':
+            self.attn = BilinearSeqAttn(x_size, h_size, opt)
+            self.attn2 = BilinearSeqAttn(x_size, h_size, opt) if do_indep_attn else None
+        else:
+            self.attn = LinearSeqScores(x_size, h_size, opt)
+            self.attn2 = LinearSeqScores(x_size, h_size, opt) if do_indep_attn else None
 
         self.rnn = nn.GRUCell(x_size, h_size) if do_ptr_update else None
 
